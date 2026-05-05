@@ -1,122 +1,179 @@
 version: "3.1"
 
 # ============================================================================
-# Historias: ejemplos de conversaciones para entrenar políticas (TED).
-# Las historias muestran caminos alternativos (afirmar, denegar, mezcla)
-# alrededor del form para que el modelo generalice mejor.
+# Historias: caminos STEM (4 carreras distintas) y no STEM.
 # ============================================================================
 
 stories:
 
-  - story: Camino feliz - usuario dice sí a casi todo
-    steps:
-      - intent: saludar
-      - action: utter_saludar
-      - intent: iniciar_cuestionario
-      - action: cuestionario_form
-      - active_loop: cuestionario_form
-      - slot_was_set:
-          - q_matematicas: si
-      - slot_was_set:
-          - q_ayudar: si
-      - slot_was_set:
-          - q_arte: tal_vez
-      - slot_was_set:
-          - q_tecnologia: si
-      - slot_was_set:
-          - q_ciencias: si
-      - slot_was_set:
-          - q_negocios: tal_vez
-      - slot_was_set:
-          - q_creatividad: si
-      - slot_was_set:
-          - requested_slot: null
-      - active_loop: null
-      - action: utter_recomendacion_intro
-      - action: action_recommend_career
-      - intent: despedida
-      - action: utter_despedida
-
-  - story: Usuario que niega la mayoría de áreas
+  - story: STEM recomienda Ciencia de Datos
     steps:
       - intent: iniciar_cuestionario
-      - action: cuestionario_form
-      - active_loop: cuestionario_form
+      - action: formulario_vocacional
+      - active_loop: formulario_vocacional
       - slot_was_set:
-          - q_matematicas: no
+          - macro_area: stem
       - slot_was_set:
-          - q_ayudar: no
+          - tipo_actividad: analitico
       - slot_was_set:
-          - q_arte: tal_vez
+          - stem_preferencia: matematicas
       - slot_was_set:
-          - q_tecnologia: no
-      - slot_was_set:
-          - q_ciencias: no
-      - slot_was_set:
-          - q_negocios: no
-      - slot_was_set:
-          - q_creatividad: tal_vez
+          - stem_estilo_trabajo: abstracto
       - slot_was_set:
           - requested_slot: null
       - active_loop: null
       - action: utter_recomendacion_intro
       - action: action_recommend_career
 
-  - story: Usuario expresa interés libremente y luego completa el cuestionario
+  - story: STEM recomienda Ingeniería Civil
     steps:
-      - intent: saludar
-      - action: utter_saludar
-      - intent: expresar_interes
-        entities:
-          - area_interes: tecnologia
       - intent: iniciar_cuestionario
-      - action: cuestionario_form
-      - active_loop: cuestionario_form
+      - action: formulario_vocacional
+      - active_loop: formulario_vocacional
       - slot_was_set:
-          - q_matematicas: si
+          - macro_area: stem
       - slot_was_set:
-          - q_ayudar: tal_vez
+          - tipo_actividad: analitico
       - slot_was_set:
-          - q_arte: no
+          - stem_preferencia: matematicas
       - slot_was_set:
-          - q_tecnologia: si
-      - slot_was_set:
-          - q_ciencias: tal_vez
-      - slot_was_set:
-          - q_negocios: no
-      - slot_was_set:
-          - q_creatividad: tal_vez
+          - stem_estilo_trabajo: aplicado
       - slot_was_set:
           - requested_slot: null
       - active_loop: null
       - action: utter_recomendacion_intro
       - action: action_recommend_career
-      - intent: despedida
-      - action: utter_despedida
 
-  - story: Usuario interesado en humanidades / ayuda
+  - story: STEM recomienda Ingeniería Informática
+    steps:
+      - intent: iniciar_cuestionario
+      - action: formulario_vocacional
+      - active_loop: formulario_vocacional
+      - slot_was_set:
+          - macro_area: stem
+      - slot_was_set:
+          - tipo_actividad: analitico
+      - slot_was_set:
+          - stem_preferencia: programacion
+      - slot_was_set:
+          - stem_estilo_trabajo: aplicado
+      - slot_was_set:
+          - requested_slot: null
+      - active_loop: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career
+
+  - story: STEM recomienda Mecatrónica
+    steps:
+      - intent: iniciar_cuestionario
+      - action: formulario_vocacional
+      - active_loop: formulario_vocacional
+      - slot_was_set:
+          - macro_area: stem
+      - slot_was_set:
+          - tipo_actividad: creativo
+      - slot_was_set:
+          - stem_preferencia: construccion_fisica
+      - slot_was_set:
+          - stem_estilo_trabajo: aplicado
+      - slot_was_set:
+          - requested_slot: null
+      - active_loop: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career
+
+  - story: Salud recomienda Medicina
     steps:
       - intent: saludar
       - action: utter_saludar
-      - intent: pedir_ayuda
-      - action: utter_pedir_ayuda
       - intent: iniciar_cuestionario
-      - action: cuestionario_form
-      - active_loop: cuestionario_form
+      - action: formulario_vocacional
+      - active_loop: formulario_vocacional
       - slot_was_set:
-          - q_matematicas: no
+          - macro_area: salud
       - slot_was_set:
-          - q_ayudar: si
+          - tipo_actividad: social
       - slot_was_set:
-          - q_arte: tal_vez
+          - requested_slot: null
+      - active_loop: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career
+
+  - story: Humanidades analítico recomienda Derecho
+    steps:
+      - intent: iniciar_cuestionario
+      - action: formulario_vocacional
+      - active_loop: formulario_vocacional
       - slot_was_set:
-          - q_tecnologia: no
+          - macro_area: humanidades
       - slot_was_set:
-          - q_ciencias: si
+          - tipo_actividad: analitico
       - slot_was_set:
-          - q_negocios: tal_vez
+          - requested_slot: null
+      - active_loop: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career
+
+  - story: Humanidades social recomienda Psicología
+    steps:
+      - intent: iniciar_cuestionario
+      - action: formulario_vocacional
+      - active_loop: formulario_vocacional
       - slot_was_set:
-          - q_creatividad: si
+          - macro_area: humanidades
+      - slot_was_set:
+          - tipo_actividad: social
+      - slot_was_set:
+          - requested_slot: null
+      - active_loop: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career
+
+  - story: Humanidades creativo recomienda Psicología
+    steps:
+      - intent: iniciar_cuestionario
+      - action: formulario_vocacional
+      - active_loop: formulario_vocacional
+      - slot_was_set:
+          - macro_area: humanidades
+      - slot_was_set:
+          - tipo_actividad: creativo
+      - slot_was_set:
+          - requested_slot: null
+      - active_loop: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career
+
+  - story: Otro área mensaje de orientación amplia
+    steps:
+      - intent: iniciar_cuestionario
+      - action: formulario_vocacional
+      - active_loop: formulario_vocacional
+      - slot_was_set:
+          - macro_area: otro
+      - slot_was_set:
+          - tipo_actividad: analitico
+      - slot_was_set:
+          - requested_slot: null
+      - active_loop: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career
+
+  - story: Camino feliz saludo y despedida
+    steps:
+      - intent: saludar
+      - action: utter_saludar
+      - intent: iniciar_cuestionario
+      - action: formulario_vocacional
+      - active_loop: formulario_vocacional
+      - slot_was_set:
+          - macro_area: stem
+      - slot_was_set:
+          - tipo_actividad: analitico
+      - slot_was_set:
+          - stem_preferencia: programacion
+      - slot_was_set:
+          - stem_estilo_trabajo: abstracto
       - slot_was_set:
           - requested_slot: null
       - active_loop: null

@@ -1,172 +1,174 @@
-"""Custom actions del bot de orientación vocacional.
+"""Acciones personalizadas: formulario vocacional en dos etapas y recomendación.
 
-Este módulo implementa la lógica de recomendación: a partir de las respuestas
-del usuario al cuestionario (siete dimensiones de interés), calcula un puntaje
-ponderado por carrera y devuelve la mejor coincidencia junto con dos
-alternativas cercanas.
-
-El algoritmo es una suma ponderada simple por dos motivos:
-1. Es trivial de auditar y de extender (basta con tocar `CAREER_WEIGHTS`).
-2. Para un boilerplate didáctico es más valioso que el alumno entienda
-   el flujo Rasa <-> custom action que un modelo ML opaco.
+- `ValidateFormularioVocacional`: añade slots STEM solo si `macro_area` es stem.
+- `ActionRecommendCareer`: reglas declarativas para STEM y caminos generales.
 """
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Text, Tuple
 
 from rasa_sdk import Action, Tracker
 from rasa_sdk.events import EventType, SlotSet
 from rasa_sdk.executor import CollectingDispatcher
-
+from rasa_sdk.forms import FormValidationAction
+from rasa_sdk.types import DomainDict
 
 # ---------------------------------------------------------------------------
-# Configuración del modelo de recomendación
+# Matriz STEM: (stem_preferencia, stem_estilo_trabajo) -> carrera
 # ---------------------------------------------------------------------------
 
-# Dimensiones de interés evaluadas por el cuestionario.
-# El orden refleja el orden de las preguntas en el form `cuestionario_form`.
-INTEREST_DIMENSIONS: Tuple[str, ...] = (
-    "matematicas",
-    "ayudar",
-    "arte",
-    "tecnologia",
-    "ciencias",
-    "negocios",
-    "creatividad",
-)
-
-# Mapping slot -> dimensión.
-SLOT_TO_DIMENSION: Dict[str, str] = {
-    "q_matematicas": "matematicas",
-    "q_ayudar": "ayudar",
-    "q_arte": "arte",
-    "q_tecnologia": "tecnologia",
-    "q_ciencias": "ciencias",
-    "q_negocios": "negocios",
-    "q_creatividad": "creatividad",
-}
-
-# Pesos por carrera (0 = irrelevante, 3 = central).
-# Cada fila debe cubrir todas las dimensiones de INTEREST_DIMENSIONS.
-CAREER_WEIGHTS: Dict[str, Dict[str, int]] = {
-    "Ingeniería de Software": {
-        "matematicas": 3, "tecnologia": 3, "creatividad": 2,
-        "ciencias": 2, "ayudar": 1, "arte": 1, "negocios": 1,
-    },
-    "Medicina": {
-        "ciencias": 3, "ayudar": 3, "matematicas": 1,
-        "tecnologia": 1, "creatividad": 1, "arte": 0, "negocios": 1,
-    },
-    "Diseño Gráfico": {
-        "arte": 3, "creatividad": 3, "tecnologia": 2,
-        "ayudar": 1, "negocios": 1, "matematicas": 0, "ciencias": 0,
-    },
-    "Psicología": {
-        "ayudar": 3, "ciencias": 2, "creatividad": 2,
-        "arte": 1, "matematicas": 1, "negocios": 1, "tecnologia": 0,
-    },
-    "Administración de Empresas": {
-        "negocios": 3, "matematicas": 2, "ayudar": 2,
-        "tecnologia": 1, "creatividad": 1, "arte": 0, "ciencias": 0,
-    },
-    "Arquitectura": {
-        "arte": 3, "creatividad": 3, "matematicas": 2,
-        "tecnologia": 2, "ciencias": 1, "negocios": 1, "ayudar": 0,
-    },
-}
-
-# Multiplicador asociado a cada respuesta del usuario.
-# "tal_vez" cuenta como medio voto para no penalizar la indecisión.
-ANSWER_MULT: Dict[str, float] = {
-    "si": 1.0,
-    "tal_vez": 0.5,
-    "no": 0.0,
+STEM_MATRIX: Dict[Tuple[str, str], str] = {
+    ("matematicas", "abstracto"): "Ciencia de Datos",
+    ("matematicas", "aplicado"): "Ingeniería Civil",
+    ("programacion", "abstracto"): "Ciencia de Datos",
+    ("programacion", "aplicado"): "Ingeniería Informática",
+    ("construccion_fisica", "abstracto"): "Ingeniería Civil",
+    ("construccion_fisica", "aplicado"): "Mecatrónica",
 }
 
 
-# ---------------------------------------------------------------------------
-# Helpers puros (testeables sin Rasa)
-# ---------------------------------------------------------------------------
-
-def _normalize_answer(raw: Any) -> str:
-    """Normaliza el valor del slot a una clave de ANSWER_MULT.
-
-    Tolerante a None, mayúsculas y a las variantes "sí"/"si".
-    """
-    if raw is None:
-        return "no"
-    value = str(raw).strip().lower().replace("í", "i")
-    if value in ANSWER_MULT:
-        return value
-    if value in {"yes", "y", "true"}:
-        return "si"
-    if value in {"maybe", "tal vez"}:
-        return "tal_vez"
-    return "no"
-
-
-def _compute_scores(answers: Dict[str, str]) -> List[Tuple[str, float]]:
-    """Devuelve la lista de carreras ordenada por puntaje descendente.
-
-    Args:
-        answers: dict dimensión -> respuesta normalizada ("si"/"no"/"tal_vez").
-
-    Returns:
-        Lista de tuplas (carrera, puntaje) ordenadas de mayor a menor.
-    """
-    scores: List[Tuple[str, float]] = []
-    for career, weights in CAREER_WEIGHTS.items():
-        total = 0.0
-        for dim in INTEREST_DIMENSIONS:
-            weight = weights.get(dim, 0)
-            mult = ANSWER_MULT[answers.get(dim, "no")]
-            total += weight * mult
-        scores.append((career, round(total, 2)))
-    scores.sort(key=lambda pair: pair[1], reverse=True)
-    return scores
-
-
-def _format_message(scores: List[Tuple[str, float]]) -> str:
-    """Construye el mensaje de recomendación a partir del ranking."""
-    if not scores:
-        return (
-            "No pude calcular una recomendación con la información disponible. "
-            "¿Quieres intentar el cuestionario de nuevo?"
+def _recommend_stem(
+    preferencia: Optional[str],
+    estilo: Optional[str],
+) -> Tuple[Optional[str], str]:
+    """Devuelve (carrera, mensaje) para rama STEM. carrera None si faltan datos."""
+    if not preferencia or not estilo:
+        msg = (
+            "No tengo suficiente información para una recomendación STEM precisa. "
+            "Te sugiero repetir el cuestionario o hablar con un orientador vocacional."
         )
+        return None, msg
 
-    best_career, best_score = scores[0]
-    runners_up = scores[1:3]
-
-    # Si todos los puntajes son 0, el usuario respondió "no" a todo.
-    if best_score == 0:
-        return (
-            "Parece que ninguna de las áreas que evaluamos te entusiasma. "
-            "Te sugiero hablar con un orientador humano para explorar otras "
-            "opciones que aquí no cubrimos."
+    key = (preferencia, estilo)
+    career = STEM_MATRIX.get(key)
+    if not career:
+        msg = (
+            "Con esas combinaciones no tengo una fila en la tabla de recomendaciones. "
+            "Un orientador humano podrá afinar mejor tu perfil."
         )
+        return None, msg
 
-    runner_up_text = ", ".join(
-        f"{name} ({score} pts)" for name, score in runners_up
+    msg = (
+        f"Según tu perfil STEM, una carrera que encaja bien es **{career}**.\n\n"
+        "Recuerda revisar planes de estudio y salidas laborales en tu país o universidad; "
+        "esto es orientación, no una decisión final."
     )
+    return career, msg
 
-    return (
-        f"Según tus respuestas, la carrera que mejor encaja contigo es "
-        f"**{best_career}** con un puntaje de {best_score}.\n"
-        f"También podrías considerar: {runner_up_text}.\n\n"
-        "Recuerda que esta es una recomendación orientativa: "
-        "lo ideal es complementarla investigando los planes de estudio."
+
+def _recommend_general(
+    macro_area: Optional[str],
+    tipo_actividad: Optional[str],
+) -> Tuple[Optional[str], str]:
+    """Carreras amplias fuera de STEM según macro_area y tipo_actividad."""
+    if macro_area == "salud":
+        career = "Medicina"
+        msg = (
+            f"Por tu interés en **salud**, una vía clásica a explorar es **{career}** "
+            "(también existen carreras afines como enfermería, odontología o nutrición, "
+            "según tus preferencias).\n\n"
+            "Complementa esta idea con prácticas, entrevistas a profesionales y "
+            "requisitos de admisión en tu institución."
+        )
+        return career, msg
+
+    if macro_area == "humanidades":
+        if tipo_actividad == "analitico":
+            career = "Derecho"
+            msg = (
+                f"Con perfil humanístico y gusto por lo **analítico**, **{career}** "
+                "suele ser una opción sólida (argumentación, normas, casos).\n\n"
+                "Explora también ciencias políticas o relaciones internacionales si "
+                "te atrae lo público y lo social desde otra perspectiva."
+            )
+            return career, msg
+        if tipo_actividad in ("social", "creativo"):
+            career = "Psicología"
+            extra = (
+                " También podrías valorar **Comunicación** u otras carreras creativas "
+                "si te interesa más la expresión y los medios."
+                if tipo_actividad == "creativo"
+                else ""
+            )
+            msg = (
+                f"Con perfil **humanidades** y enfoque más "
+                f"{'creativo' if tipo_actividad == 'creativo' else 'social'}, "
+                f"**{career}** puede encajar bien.{extra}\n\n"
+                "La orientación vocacional presencial ayuda a contrastar expectativas "
+                "con la realidad del ejercicio profesional."
+            )
+            return career, msg
+
+    if macro_area == "otro":
+        msg = (
+            "Si aún no tienes claro el gran área, lo más sensato es **explorar con un "
+            "orientador humano**, hacer entrevistas informativas y probar talleres "
+            "o cursos introductorios antes de decidir una carrera larga.\n\n"
+            "Aquí no asigno una carrera concreta: tu siguiente paso es acotar intereses "
+            "con actividades reales (voluntariado, lecturas, videos de planes de estudio)."
+        )
+        return None, msg
+
+    if not macro_area or not tipo_actividad:
+        msg = (
+            "Faltan respuestas del perfil general. Vuelve a iniciar el cuestionario "
+            "o pide ayuda para entender las opciones de cada pregunta."
+        )
+        return None, msg
+
+    msg = (
+        "No reconozco esa combinación de área y actividad. "
+        "Te recomiendo repetir el test o consultar orientación vocacional en tu centro."
     )
+    return None, msg
+
+
+def recommend_career(
+    macro_area: Optional[str],
+    tipo_actividad: Optional[str],
+    stem_preferencia: Optional[str],
+    stem_estilo_trabajo: Optional[str],
+) -> Tuple[Optional[str], str]:
+    """Punto de entrada puro: devuelve (carrera_o_None, mensaje_usuario)."""
+    if macro_area == "stem":
+        return _recommend_stem(stem_preferencia, stem_estilo_trabajo)
+    return _recommend_general(macro_area, tipo_actividad)
 
 
 # ---------------------------------------------------------------------------
-# Custom Action
+# FormValidationAction: slots STEM condicionados
 # ---------------------------------------------------------------------------
+
+
+class ValidateFormularioVocacional(FormValidationAction):
+    """Añade `stem_preferencia` y `stem_estilo_trabajo` solo si macro_area es stem."""
+
+    def name(self) -> Text:
+        return "validate_formulario_vocacional"
+
+    async def required_slots(
+        self,
+        domain_slots: List[Text],
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> List[Text]:
+        base: List[Text] = ["macro_area", "tipo_actividad"]
+        if tracker.get_slot("macro_area") == "stem":
+            return base + ["stem_preferencia", "stem_estilo_trabajo"]
+        return base
+
+
+# ---------------------------------------------------------------------------
+# Acción de recomendación final
+# ---------------------------------------------------------------------------
+
 
 class ActionRecommendCareer(Action):
-    """Calcula y comunica la recomendación de carrera al usuario."""
+    """Calcula la recomendación a partir de los slots y la comunica en español."""
 
-    def name(self) -> str:
+    def name(self) -> Text:
         return "action_recommend_career"
 
     def run(
@@ -175,15 +177,11 @@ class ActionRecommendCareer(Action):
         tracker: Tracker,
         domain: Dict[str, Any],
     ) -> List[EventType]:
-        answers: Dict[str, str] = {
-            dimension: _normalize_answer(tracker.get_slot(slot_name))
-            for slot_name, dimension in SLOT_TO_DIMENSION.items()
-        }
+        macro = tracker.get_slot("macro_area")
+        tipo = tracker.get_slot("tipo_actividad")
+        stem_pref = tracker.get_slot("stem_preferencia")
+        stem_estilo = tracker.get_slot("stem_estilo_trabajo")
 
-        scores = _compute_scores(answers)
-        message = _format_message(scores)
-
+        career, message = recommend_career(macro, tipo, stem_pref, stem_estilo)
         dispatcher.utter_message(text=message)
-
-        best_career = scores[0][0] if scores else None
-        return [SlotSet("recomendacion", best_career)]
+        return [SlotSet("carrera_recomendada", career)]

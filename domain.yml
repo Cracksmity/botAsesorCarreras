@@ -1,15 +1,10 @@
 version: "3.1"
 
 # ============================================================================
-# Dominio del bot de orientación vocacional.
-#
-# Diseño:
-# - Cada pregunta del cuestionario se almacena en un slot textual con valores
-#   normalizados: "si" | "tal_vez" | "no".
-# - El formulario `cuestionario_form` rellena los 7 slots en orden y delega
-#   la recomendación final a `action_recommend_career`.
-# - Los intents `afirmar` / `tal_vez` / `denegar` se mapean al slot activo
-#   mediante `from_intent`, condicionado a que el formulario esté activo.
+# Dominio: orientación vocacional en dos etapas (perfil general + rama STEM).
+# - Etapa 1: macro_area + tipo_actividad
+# - Etapa 2 (solo si macro_area = stem): stem_preferencia + stem_estilo_trabajo
+# - Los slots STEM se añaden dinámicamente vía validate_formulario_vocacional
 # ============================================================================
 
 intents:
@@ -20,255 +15,168 @@ intents:
   - tal_vez
   - iniciar_cuestionario
   - pedir_ayuda
-  - expresar_interes
   - bot_challenge
   - nlu_fallback
-
-entities:
-  - area_interes
+  # Etapa 1 — área macro
+  - elegir_stem
+  - elegir_salud
+  - elegir_humanidades
+  - elegir_otro
+  # Etapa 1 — tipo de actividad preferida
+  - actividad_analitica
+  - actividad_social
+  - actividad_creativa
+  # Etapa 2 — preferencias STEM
+  - prefiere_matematicas
+  - prefiere_programacion
+  - prefiere_construir
+  - estilo_abstracto
+  - estilo_aplicado
 
 slots:
-  # Captura el área de interés mencionada de forma libre por el usuario
-  # (ej. "me gustan las matemáticas"). No se requiere durante el formulario.
-  area_interes:
-    type: text
-    influence_conversation: false
-    mappings:
-      - type: from_entity
-        entity: area_interes
-
-  # ---------------- Slots del cuestionario (uno por pregunta) ----------------
-  q_matematicas:
+  macro_area:
     type: categorical
-    values: ["si", "no", "tal_vez"]
+    values: [stem, salud, humanidades, otro]
     influence_conversation: false
     mappings:
       - type: from_intent
-        intent: afirmar
-        value: "si"
+        intent: elegir_stem
+        value: stem
         conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_matematicas
+          - active_loop: formulario_vocacional
+            requested_slot: macro_area
       - type: from_intent
-        intent: denegar
-        value: "no"
+        intent: elegir_salud
+        value: salud
         conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_matematicas
+          - active_loop: formulario_vocacional
+            requested_slot: macro_area
       - type: from_intent
-        intent: tal_vez
-        value: "tal_vez"
+        intent: elegir_humanidades
+        value: humanidades
         conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_matematicas
+          - active_loop: formulario_vocacional
+            requested_slot: macro_area
+      - type: from_intent
+        intent: elegir_otro
+        value: otro
+        conditions:
+          - active_loop: formulario_vocacional
+            requested_slot: macro_area
 
-  q_ayudar:
+  tipo_actividad:
     type: categorical
-    values: ["si", "no", "tal_vez"]
+    values: [analitico, social, creativo]
     influence_conversation: false
     mappings:
       - type: from_intent
-        intent: afirmar
-        value: "si"
+        intent: actividad_analitica
+        value: analitico
         conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_ayudar
+          - active_loop: formulario_vocacional
+            requested_slot: tipo_actividad
       - type: from_intent
-        intent: denegar
-        value: "no"
+        intent: actividad_social
+        value: social
         conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_ayudar
+          - active_loop: formulario_vocacional
+            requested_slot: tipo_actividad
       - type: from_intent
-        intent: tal_vez
-        value: "tal_vez"
+        intent: actividad_creativa
+        value: creativo
         conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_ayudar
+          - active_loop: formulario_vocacional
+            requested_slot: tipo_actividad
 
-  q_arte:
+  stem_preferencia:
     type: categorical
-    values: ["si", "no", "tal_vez"]
+    values: [matematicas, programacion, construccion_fisica]
     influence_conversation: false
     mappings:
       - type: from_intent
-        intent: afirmar
-        value: "si"
+        intent: prefiere_matematicas
+        value: matematicas
         conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_arte
+          - active_loop: formulario_vocacional
+            requested_slot: stem_preferencia
       - type: from_intent
-        intent: denegar
-        value: "no"
+        intent: prefiere_programacion
+        value: programacion
         conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_arte
+          - active_loop: formulario_vocacional
+            requested_slot: stem_preferencia
       - type: from_intent
-        intent: tal_vez
-        value: "tal_vez"
+        intent: prefiere_construir
+        value: construccion_fisica
         conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_arte
+          - active_loop: formulario_vocacional
+            requested_slot: stem_preferencia
 
-  q_tecnologia:
+  stem_estilo_trabajo:
     type: categorical
-    values: ["si", "no", "tal_vez"]
+    values: [abstracto, aplicado]
     influence_conversation: false
     mappings:
       - type: from_intent
-        intent: afirmar
-        value: "si"
+        intent: estilo_abstracto
+        value: abstracto
         conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_tecnologia
+          - active_loop: formulario_vocacional
+            requested_slot: stem_estilo_trabajo
       - type: from_intent
-        intent: denegar
-        value: "no"
+        intent: estilo_aplicado
+        value: aplicado
         conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_tecnologia
-      - type: from_intent
-        intent: tal_vez
-        value: "tal_vez"
-        conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_tecnologia
+          - active_loop: formulario_vocacional
+            requested_slot: stem_estilo_trabajo
 
-  q_ciencias:
-    type: categorical
-    values: ["si", "no", "tal_vez"]
-    influence_conversation: false
-    mappings:
-      - type: from_intent
-        intent: afirmar
-        value: "si"
-        conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_ciencias
-      - type: from_intent
-        intent: denegar
-        value: "no"
-        conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_ciencias
-      - type: from_intent
-        intent: tal_vez
-        value: "tal_vez"
-        conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_ciencias
-
-  q_negocios:
-    type: categorical
-    values: ["si", "no", "tal_vez"]
-    influence_conversation: false
-    mappings:
-      - type: from_intent
-        intent: afirmar
-        value: "si"
-        conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_negocios
-      - type: from_intent
-        intent: denegar
-        value: "no"
-        conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_negocios
-      - type: from_intent
-        intent: tal_vez
-        value: "tal_vez"
-        conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_negocios
-
-  q_creatividad:
-    type: categorical
-    values: ["si", "no", "tal_vez"]
-    influence_conversation: false
-    mappings:
-      - type: from_intent
-        intent: afirmar
-        value: "si"
-        conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_creatividad
-      - type: from_intent
-        intent: denegar
-        value: "no"
-        conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_creatividad
-      - type: from_intent
-        intent: tal_vez
-        value: "tal_vez"
-        conditions:
-          - active_loop: cuestionario_form
-            requested_slot: q_creatividad
-
-  # Resultado calculado por ActionRecommendCareer.
-  recomendacion:
+  carrera_recomendada:
     type: text
     influence_conversation: false
     mappings:
       - type: custom
 
 forms:
-  cuestionario_form:
+  formulario_vocacional:
     required_slots:
-      - q_matematicas
-      - q_ayudar
-      - q_arte
-      - q_tecnologia
-      - q_ciencias
-      - q_negocios
-      - q_creatividad
+      - macro_area
+      - tipo_actividad
 
 responses:
   utter_saludar:
-    - text: "¡Hola! Soy tu asistente de orientación vocacional. Puedo ayudarte a descubrir qué carrera universitaria encaja mejor con tus intereses. ¿Quieres comenzar el cuestionario?"
+    - text: "¡Hola! Soy tu asistente de orientación vocacional. Te haré unas preguntas breves para orientarte hacia un área y, si encaja, profundizar en opciones STEM. ¿Quieres empezar? Di que quieres orientación vocacional cuando estés listo."
 
   utter_despedida:
-    - text: "¡Mucho éxito en tu camino académico! Recuerda que esta recomendación es solo una guía, no un veredicto. Hasta pronto."
-    - text: "Nos vemos. ¡Confía en tus intereses y sigue explorando!"
+    - text: "¡Mucho éxito en tu camino académico! Recuerda que esta recomendación es solo una guía. Hasta pronto."
+    - text: "Nos vemos. ¡Sigue explorando tus intereses con calma!"
 
   utter_pedir_ayuda:
-    - text: "Claro. Te haré 7 preguntas cortas sobre tus gustos. Puedes responder con 'sí', 'no' o 'tal vez'. Al final te daré una recomendación de carrera. ¿Empezamos?"
+    - text: "Te haré 2 preguntas generales sobre tu área de interés y cómo te gusta trabajar. Si eliges ciencia y tecnología (STEM), te haré 2 preguntas más sobre matemáticas, programación o construcción física. Responde eligiendo una de las opciones que te doy en cada pregunta. ¿Empezamos con 'quiero orientación vocacional'?"
 
   utter_bot_challenge:
-    - text: "Soy un bot construido con Rasa, diseñado para ayudarte a explorar opciones de carrera."
+    - text: "Soy un asistente virtual hecho con Rasa, diseñado para ayudarte a explorar carreras según tus respuestas."
 
   utter_recomendacion_intro:
     - text: "Perfecto, ya tengo tus respuestas. Déjame analizarlas..."
 
   utter_default:
-    - text: "Disculpa, no entendí eso. ¿Podrías reformularlo? Si quieres iniciar el test vocacional, dime 'quiero orientación vocacional'."
+    - text: "Disculpa, no entendí eso. ¿Podrías reformularlo? Si quieres el test vocacional, di 'quiero orientación vocacional'. En cada pregunta elige una de las opciones que te indico (por ejemplo STEM, salud, humanidades u otro)."
 
-  # Preguntas del formulario. Rasa las dispara automáticamente como
-  # `utter_ask_<slot>` cuando ese slot es el `requested_slot`.
-  utter_ask_q_matematicas:
-    - text: "Pregunta 1 de 7: ¿Disfrutas las matemáticas y resolver problemas lógicos? (sí / no / tal vez)"
+  utter_ask_macro_area:
+    - text: "Pregunta 1 de 2 (perfil general): ¿En qué gran área te ves más? Responde con una de estas ideas — STEM (ciencia, tecnología, ingeniería y matemáticas), salud o medicina, humanidades o ciencias sociales, u otra cosa / aún no lo tengo claro."
 
-  utter_ask_q_ayudar:
-    - text: "Pregunta 2 de 7: ¿Te gusta ayudar y escuchar a las personas? (sí / no / tal vez)"
+  utter_ask_tipo_actividad:
+    - text: "Pregunta 2 de 2 (perfil general): ¿Qué tipo de actividades te atraen más? — analíticas (datos, lógica, argumentación), sociales (personas, equipos, escucha) o creativas (ideas nuevas, expresión, diseño)."
 
-  utter_ask_q_arte:
-    - text: "Pregunta 3 de 7: ¿Te atrae el arte, el diseño o lo visual? (sí / no / tal vez)"
+  utter_ask_stem_preferencia:
+    - text: "Pregunta extra (STEM): entre estas tres, ¿cuál te representa más? — matemáticas y modelado, programación y software, o construir / sistemas físicos y mecánica."
 
-  utter_ask_q_tecnologia:
-    - text: "Pregunta 4 de 7: ¿Te interesa la tecnología y trabajar con computadoras? (sí / no / tal vez)"
-
-  utter_ask_q_ciencias:
-    - text: "Pregunta 5 de 7: ¿Te apasionan las ciencias naturales como biología o química? (sí / no / tal vez)"
-
-  utter_ask_q_negocios:
-    - text: "Pregunta 6 de 7: ¿Te ves liderando equipos, emprendiendo o gestionando un negocio? (sí / no / tal vez)"
-
-  utter_ask_q_creatividad:
-    - text: "Pregunta 7 de 7: ¿Prefieres tareas creativas y abiertas frente a tareas estructuradas y repetitivas? (sí / no / tal vez)"
+  utter_ask_stem_estilo_trabajo:
+    - text: "Última pregunta (STEM): ¿prefieres un trabajo más abstracto (teoría, algoritmos, modelos) o más aplicado (proyectos concretos, campo, prototipos)?"
 
 actions:
   - action_recommend_career
+  - validate_formulario_vocacional
 
 session_config:
   session_expiration_time: 60

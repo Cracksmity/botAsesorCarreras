@@ -1,14 +1,12 @@
 version: "3.1"
 
 # ============================================================================
-# Tests end-to-end: Rasa los corre con `rasa test`.
-# Sirven para verificar que la conversación se comporte como se espera
-# (clasificación NLU + políticas) sin tocar el modelo entrenado.
+# Tests end-to-end: `rasa test` — flujo STEM y flujo general (sin STEM).
 # ============================================================================
 
 stories:
 
-  - story: test - flujo completo con respuestas afirmativas
+  - story: test - flujo STEM completo hasta recomendación
     steps:
       - user: |
           hola
@@ -17,43 +15,28 @@ stories:
       - user: |
           quiero orientación vocacional
         intent: iniciar_cuestionario
-      - action: cuestionario_form
-      - active_loop: cuestionario_form
+      - action: formulario_vocacional
+      - active_loop: formulario_vocacional
       - user: |
-          sí
-        intent: afirmar
+          lo mío es STEM
+        intent: elegir_stem
       - slot_was_set:
-          - q_matematicas: si
+          - macro_area: stem
       - user: |
-          sí
-        intent: afirmar
+          prefiero actividades analíticas
+        intent: actividad_analitica
       - slot_was_set:
-          - q_ayudar: si
+          - tipo_actividad: analitico
       - user: |
-          tal vez
-        intent: tal_vez
+          prefiero matemáticas y modelado
+        intent: prefiere_matematicas
       - slot_was_set:
-          - q_arte: tal_vez
+          - stem_preferencia: matematicas
       - user: |
-          sí
-        intent: afirmar
+          prefiero trabajo abstracto
+        intent: estilo_abstracto
       - slot_was_set:
-          - q_tecnologia: si
-      - user: |
-          sí
-        intent: afirmar
-      - slot_was_set:
-          - q_ciencias: si
-      - user: |
-          no
-        intent: denegar
-      - slot_was_set:
-          - q_negocios: no
-      - user: |
-          sí
-        intent: afirmar
-      - slot_was_set:
-          - q_creatividad: si
+          - stem_estilo_trabajo: abstracto
       - active_loop: null
       - slot_was_set:
           - requested_slot: null
@@ -63,3 +46,26 @@ stories:
           adiós
         intent: despedida
       - action: utter_despedida
+
+  - story: test - flujo salud sin preguntas STEM
+    steps:
+      - user: |
+          quiero orientación vocacional
+        intent: iniciar_cuestionario
+      - action: formulario_vocacional
+      - active_loop: formulario_vocacional
+      - user: |
+          me interesa la salud
+        intent: elegir_salud
+      - slot_was_set:
+          - macro_area: salud
+      - user: |
+          prefiero actividades sociales
+        intent: actividad_social
+      - slot_was_set:
+          - tipo_actividad: social
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career

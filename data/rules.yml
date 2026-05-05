@@ -1,10 +1,8 @@
 version: "3.1"
 
 # ============================================================================
-# Reglas: comportamientos deterministas que se cumplen siempre.
-# Las reglas son ideales para small talk y para activar/cerrar formularios.
-# La conversación principal del cuestionario vive dentro del form, por lo que
-# basta con dos reglas (activación y envío).
+# Reglas: small talk + activación y envío del formulario vocacional.
+# La rama STEM se resuelve dentro del form (required_slots dinámico).
 # ============================================================================
 
 rules:
@@ -29,17 +27,17 @@ rules:
       - intent: bot_challenge
       - action: utter_bot_challenge
 
-  - rule: Activar el cuestionario vocacional
+  - rule: Activar el formulario vocacional
     steps:
       - intent: iniciar_cuestionario
-      - action: cuestionario_form
-      - active_loop: cuestionario_form
+      - action: formulario_vocacional
+      - active_loop: formulario_vocacional
 
-  - rule: Enviar el cuestionario y recomendar carrera
+  - rule: Enviar formulario y recomendar carrera
     condition:
-      - active_loop: cuestionario_form
+      - active_loop: formulario_vocacional
     steps:
-      - action: cuestionario_form
+      - action: formulario_vocacional
       - active_loop: null
       - slot_was_set:
           - requested_slot: null

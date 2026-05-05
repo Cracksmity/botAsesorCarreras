@@ -1,9 +1,7 @@
 version: "3.1"
 
 # ============================================================================
-# Datos NLU del bot vocacional.
-# Todos los ejemplos están en español, escritos de forma natural (con y sin
-# tildes para tolerar usuarios que escriben sin acentos).
+# NLU en español: perfil general + rama STEM (intents categóricos).
 # ============================================================================
 
 nlu:
@@ -107,23 +105,7 @@ nlu:
       - cómo me ayudas
       - qué haces
       - cómo usar el bot
-
-  - intent: expresar_interes
-    examples: |
-      - me gustan las [matemáticas](area_interes:matematicas)
-      - amo las [matematicas](area_interes:matematicas)
-      - disfruto [ayudar a la gente](area_interes:ayudar)
-      - me encanta [ayudar a las personas](area_interes:ayudar)
-      - me apasiona el [arte](area_interes:arte)
-      - amo el [diseño](area_interes:arte) y lo visual
-      - me interesa la [tecnología](area_interes:tecnologia)
-      - me fascinan las [computadoras](area_interes:tecnologia)
-      - me apasionan las [ciencias](area_interes:ciencias)
-      - me encanta la [biología](area_interes:ciencias)
-      - quiero estudiar algo relacionado con [negocios](area_interes:negocios)
-      - me interesa [emprender](area_interes:negocios)
-      - soy una persona muy [creativa](area_interes:creatividad)
-      - me gusta hacer cosas [creativas](area_interes:creatividad)
+      - qué debo responder
 
   - intent: bot_challenge
     examples: |
@@ -135,56 +117,140 @@ nlu:
       - ¿esto es un robot?
       - ¿quién me responde?
 
-  # ----- Sinónimos: normalizan variantes de la entidad area_interes -----
+  # ----- Etapa 1: área macro -----
 
-  - synonym: matematicas
+  - intent: elegir_stem
     examples: |
-      - matemáticas
-      - matemática
-      - números
-      - lógica
-      - cálculo
+      - me gustan más las áreas de ciencia y tecnología
+      - lo mío es STEM
+      - prefiero ingeniería y ciencias exactas
+      - me interesa la tecnología y las matemáticas
+      - quiero algo técnico
+      - me inclino por STEM
+      - ciencia ingeniería y matemáticas
+      - prefiero carreras de ciencias exactas
 
-  - synonym: ayudar
+  - intent: elegir_salud
     examples: |
-      - ayudar a la gente
-      - ayudar a las personas
-      - escuchar a otros
-      - apoyar a los demás
+      - me interesa la salud
+      - quiero algo relacionado con medicina
+      - lo mío es la medicina
+      - me atrae el área de la salud
+      - prefiero biología y salud
+      - me gusta ayudar curando
+      - quiero estudiar algo de salud
+      - me veo en el hospital o clínica
 
-  - synonym: arte
+  - intent: elegir_humanidades
     examples: |
-      - diseño
-      - dibujo
-      - artes visuales
-      - lo visual
+      - prefiero humanidades
+      - me interesan las ciencias sociales
+      - lo mío es lo social y humanístico
+      - quiero estudiar algo de letras o sociedad
+      - me atrae el derecho la historia o la psicología
+      - prefiero trabajar con personas e ideas sociales
+      - no me gusta tanto lo técnico prefiero humanidades
+      - me inclino por ciencias sociales y humanidades
 
-  - synonym: tecnologia
+  - intent: elegir_otro
     examples: |
-      - tecnología
-      - computadoras
-      - computación
-      - programación
-      - software
+      - no lo tengo claro
+      - otra cosa
+      - ninguna de las anteriores
+      - aún no sé
+      - estoy entre varias áreas
+      - no encajo en esas opciones
+      - prefiero no elegir todavía
+      - no estoy seguro del área
 
-  - synonym: ciencias
-    examples: |
-      - biología
-      - química
-      - ciencias naturales
-      - física
+  # ----- Etapa 1: tipo de actividad -----
 
-  - synonym: negocios
+  - intent: actividad_analitica
     examples: |
-      - emprender
-      - emprendimiento
-      - administración
-      - empresas
+      - prefiero actividades analíticas
+      - lo mío es lo analítico
+      - me gusta analizar datos y lógica
+      - prefiero razonar y argumentar
+      - me gustan los problemas lógicos
+      - trabajo bien con números y estructuras
+      - prefiero el análisis antes que lo social puro
+      - me atrae lo analítico y sistemático
 
-  - synonym: creatividad
+  - intent: actividad_social
     examples: |
-      - creativa
-      - creativo
-      - creativas
-      - creativos
-      - imaginación
+      - prefiero actividades sociales
+      - me gusta trabajar con gente
+      - lo mío es escuchar y apoyar
+      - prefiero equipos y personas
+      - me motiva lo social
+      - quiero trabajar ayudando a otros directamente
+      - prefiero lo interpersonal
+      - me atrae lo relacionado con personas
+
+  - intent: actividad_creativa
+    examples: |
+      - prefiero actividades creativas
+      - me gusta crear e inventar
+      - lo mío es la creatividad
+      - prefiero ideas nuevas y diseño
+      - me motiva lo artístico y expresivo
+      - quiero espacio para innovar
+      - prefiero proyectos creativos
+      - me atrae lo creativo y abierto
+
+  # ----- Etapa 2: STEM -----
+
+  - intent: prefiere_matematicas
+    examples: |
+      - prefiero matemáticas y modelado
+      - lo mío son las matemáticas
+      - me gusta el modelado matemático
+      - prefiero fórmulas y teoría matemática
+      - me encantan las matemáticas
+      - quiero trabajar con modelos y ecuaciones
+      - prefiero estadística y matemáticas
+      - me inclino por el rigor matemático
+
+  - intent: prefiere_programacion
+    examples: |
+      - me gusta programar
+      - prefiero escribir código
+      - lo mío es la programación
+      - me encanta el desarrollo de software
+      - prefiero trabajar con código antes que con fórmulas solas
+      - quiero dedicarme al software
+      - prefiero informática y código
+      - me motiva programar aplicaciones
+
+  - intent: prefiere_construir
+    examples: |
+      - prefiero construir cosas físicas
+      - me gusta la mecánica y los sistemas físicos
+      - lo mío es armar prototipos y máquinas
+      - prefiero robótica y hardware
+      - me atrae la ingeniería mecánica aplicada
+      - quiero trabajar con sensores y actuadores
+      - prefiero taller y prototipos
+      - me gusta lo tangible y mecánico
+
+  - intent: estilo_abstracto
+    examples: |
+      - prefiero trabajo abstracto
+      - me gusta la teoría y los algoritmos
+      - lo mío son modelos y abstracción
+      - prefiero pensar en conceptos antes que en obra física
+      - me motiva lo teórico
+      - quiero enfoque en modelos y algoritmos
+      - prefiero el lado abstracto
+      - trabajo mejor con ideas abstractas
+
+  - intent: estilo_aplicado
+    examples: |
+      - prefiero trabajo aplicado
+      - me gustan proyectos concretos
+      - lo mío es salir al campo y construir
+      - prefiero prototipos y obra aplicada
+      - me motiva lo práctico de inmediato
+      - quiero ver resultados tangibles en proyectos
+      - prefiero aplicación directa
+      - me inclino por lo aplicado y de proyecto
