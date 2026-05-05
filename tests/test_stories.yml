@@ -1,0 +1,65 @@
+version: "3.1"
+
+# ============================================================================
+# Tests end-to-end: Rasa los corre con `rasa test`.
+# Sirven para verificar que la conversación se comporte como se espera
+# (clasificación NLU + políticas) sin tocar el modelo entrenado.
+# ============================================================================
+
+stories:
+
+  - story: test - flujo completo con respuestas afirmativas
+    steps:
+      - user: |
+          hola
+        intent: saludar
+      - action: utter_saludar
+      - user: |
+          quiero orientación vocacional
+        intent: iniciar_cuestionario
+      - action: cuestionario_form
+      - active_loop: cuestionario_form
+      - user: |
+          sí
+        intent: afirmar
+      - slot_was_set:
+          - q_matematicas: si
+      - user: |
+          sí
+        intent: afirmar
+      - slot_was_set:
+          - q_ayudar: si
+      - user: |
+          tal vez
+        intent: tal_vez
+      - slot_was_set:
+          - q_arte: tal_vez
+      - user: |
+          sí
+        intent: afirmar
+      - slot_was_set:
+          - q_tecnologia: si
+      - user: |
+          sí
+        intent: afirmar
+      - slot_was_set:
+          - q_ciencias: si
+      - user: |
+          no
+        intent: denegar
+      - slot_was_set:
+          - q_negocios: no
+      - user: |
+          sí
+        intent: afirmar
+      - slot_was_set:
+          - q_creatividad: si
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career
+      - user: |
+          adiós
+        intent: despedida
+      - action: utter_despedida

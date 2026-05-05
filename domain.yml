@@ -1,0 +1,275 @@
+version: "3.1"
+
+# ============================================================================
+# Dominio del bot de orientación vocacional.
+#
+# Diseño:
+# - Cada pregunta del cuestionario se almacena en un slot textual con valores
+#   normalizados: "si" | "tal_vez" | "no".
+# - El formulario `cuestionario_form` rellena los 7 slots en orden y delega
+#   la recomendación final a `action_recommend_career`.
+# - Los intents `afirmar` / `tal_vez` / `denegar` se mapean al slot activo
+#   mediante `from_intent`, condicionado a que el formulario esté activo.
+# ============================================================================
+
+intents:
+  - saludar
+  - despedida
+  - afirmar
+  - denegar
+  - tal_vez
+  - iniciar_cuestionario
+  - pedir_ayuda
+  - expresar_interes
+  - bot_challenge
+  - nlu_fallback
+
+entities:
+  - area_interes
+
+slots:
+  # Captura el área de interés mencionada de forma libre por el usuario
+  # (ej. "me gustan las matemáticas"). No se requiere durante el formulario.
+  area_interes:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: area_interes
+
+  # ---------------- Slots del cuestionario (uno por pregunta) ----------------
+  q_matematicas:
+    type: categorical
+    values: ["si", "no", "tal_vez"]
+    influence_conversation: false
+    mappings:
+      - type: from_intent
+        intent: afirmar
+        value: "si"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_matematicas
+      - type: from_intent
+        intent: denegar
+        value: "no"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_matematicas
+      - type: from_intent
+        intent: tal_vez
+        value: "tal_vez"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_matematicas
+
+  q_ayudar:
+    type: categorical
+    values: ["si", "no", "tal_vez"]
+    influence_conversation: false
+    mappings:
+      - type: from_intent
+        intent: afirmar
+        value: "si"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_ayudar
+      - type: from_intent
+        intent: denegar
+        value: "no"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_ayudar
+      - type: from_intent
+        intent: tal_vez
+        value: "tal_vez"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_ayudar
+
+  q_arte:
+    type: categorical
+    values: ["si", "no", "tal_vez"]
+    influence_conversation: false
+    mappings:
+      - type: from_intent
+        intent: afirmar
+        value: "si"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_arte
+      - type: from_intent
+        intent: denegar
+        value: "no"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_arte
+      - type: from_intent
+        intent: tal_vez
+        value: "tal_vez"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_arte
+
+  q_tecnologia:
+    type: categorical
+    values: ["si", "no", "tal_vez"]
+    influence_conversation: false
+    mappings:
+      - type: from_intent
+        intent: afirmar
+        value: "si"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_tecnologia
+      - type: from_intent
+        intent: denegar
+        value: "no"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_tecnologia
+      - type: from_intent
+        intent: tal_vez
+        value: "tal_vez"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_tecnologia
+
+  q_ciencias:
+    type: categorical
+    values: ["si", "no", "tal_vez"]
+    influence_conversation: false
+    mappings:
+      - type: from_intent
+        intent: afirmar
+        value: "si"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_ciencias
+      - type: from_intent
+        intent: denegar
+        value: "no"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_ciencias
+      - type: from_intent
+        intent: tal_vez
+        value: "tal_vez"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_ciencias
+
+  q_negocios:
+    type: categorical
+    values: ["si", "no", "tal_vez"]
+    influence_conversation: false
+    mappings:
+      - type: from_intent
+        intent: afirmar
+        value: "si"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_negocios
+      - type: from_intent
+        intent: denegar
+        value: "no"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_negocios
+      - type: from_intent
+        intent: tal_vez
+        value: "tal_vez"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_negocios
+
+  q_creatividad:
+    type: categorical
+    values: ["si", "no", "tal_vez"]
+    influence_conversation: false
+    mappings:
+      - type: from_intent
+        intent: afirmar
+        value: "si"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_creatividad
+      - type: from_intent
+        intent: denegar
+        value: "no"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_creatividad
+      - type: from_intent
+        intent: tal_vez
+        value: "tal_vez"
+        conditions:
+          - active_loop: cuestionario_form
+            requested_slot: q_creatividad
+
+  # Resultado calculado por ActionRecommendCareer.
+  recomendacion:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+
+forms:
+  cuestionario_form:
+    required_slots:
+      - q_matematicas
+      - q_ayudar
+      - q_arte
+      - q_tecnologia
+      - q_ciencias
+      - q_negocios
+      - q_creatividad
+
+responses:
+  utter_saludar:
+    - text: "¡Hola! Soy tu asistente de orientación vocacional. Puedo ayudarte a descubrir qué carrera universitaria encaja mejor con tus intereses. ¿Quieres comenzar el cuestionario?"
+
+  utter_despedida:
+    - text: "¡Mucho éxito en tu camino académico! Recuerda que esta recomendación es solo una guía, no un veredicto. Hasta pronto."
+    - text: "Nos vemos. ¡Confía en tus intereses y sigue explorando!"
+
+  utter_pedir_ayuda:
+    - text: "Claro. Te haré 7 preguntas cortas sobre tus gustos. Puedes responder con 'sí', 'no' o 'tal vez'. Al final te daré una recomendación de carrera. ¿Empezamos?"
+
+  utter_bot_challenge:
+    - text: "Soy un bot construido con Rasa, diseñado para ayudarte a explorar opciones de carrera."
+
+  utter_recomendacion_intro:
+    - text: "Perfecto, ya tengo tus respuestas. Déjame analizarlas..."
+
+  utter_default:
+    - text: "Disculpa, no entendí eso. ¿Podrías reformularlo? Si quieres iniciar el test vocacional, dime 'quiero orientación vocacional'."
+
+  # Preguntas del formulario. Rasa las dispara automáticamente como
+  # `utter_ask_<slot>` cuando ese slot es el `requested_slot`.
+  utter_ask_q_matematicas:
+    - text: "Pregunta 1 de 7: ¿Disfrutas las matemáticas y resolver problemas lógicos? (sí / no / tal vez)"
+
+  utter_ask_q_ayudar:
+    - text: "Pregunta 2 de 7: ¿Te gusta ayudar y escuchar a las personas? (sí / no / tal vez)"
+
+  utter_ask_q_arte:
+    - text: "Pregunta 3 de 7: ¿Te atrae el arte, el diseño o lo visual? (sí / no / tal vez)"
+
+  utter_ask_q_tecnologia:
+    - text: "Pregunta 4 de 7: ¿Te interesa la tecnología y trabajar con computadoras? (sí / no / tal vez)"
+
+  utter_ask_q_ciencias:
+    - text: "Pregunta 5 de 7: ¿Te apasionan las ciencias naturales como biología o química? (sí / no / tal vez)"
+
+  utter_ask_q_negocios:
+    - text: "Pregunta 6 de 7: ¿Te ves liderando equipos, emprendiendo o gestionando un negocio? (sí / no / tal vez)"
+
+  utter_ask_q_creatividad:
+    - text: "Pregunta 7 de 7: ¿Prefieres tareas creativas y abiertas frente a tareas estructuradas y repetitivas? (sí / no / tal vez)"
+
+actions:
+  - action_recommend_career
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

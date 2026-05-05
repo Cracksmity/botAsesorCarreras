@@ -1,0 +1,190 @@
+version: "3.1"
+
+# ============================================================================
+# Datos NLU del bot vocacional.
+# Todos los ejemplos están en español, escritos de forma natural (con y sin
+# tildes para tolerar usuarios que escriben sin acentos).
+# ============================================================================
+
+nlu:
+
+  - intent: saludar
+    examples: |
+      - hola
+      - buenas
+      - buenos días
+      - buenas tardes
+      - buenas noches
+      - qué tal
+      - hey
+      - holi
+      - saludos
+      - hola bot
+
+  - intent: despedida
+    examples: |
+      - adiós
+      - hasta luego
+      - nos vemos
+      - chao
+      - hasta pronto
+      - me voy
+      - bye
+      - hasta la próxima
+      - cuídate
+      - me tengo que ir
+
+  - intent: afirmar
+    examples: |
+      - sí
+      - si
+      - claro
+      - por supuesto
+      - obvio
+      - definitivamente
+      - me encanta
+      - así es
+      - correcto
+      - exacto
+      - me gusta mucho
+      - bastante
+      - sí, mucho
+      - totalmente
+
+  - intent: denegar
+    examples: |
+      - no
+      - para nada
+      - no me gusta
+      - no realmente
+      - negativo
+      - claro que no
+      - jamás
+      - nunca
+      - no me interesa
+      - en absoluto
+      - no me llama la atención
+      - no mucho
+
+  - intent: tal_vez
+    examples: |
+      - tal vez
+      - quizás
+      - quizá
+      - más o menos
+      - no estoy seguro
+      - no estoy segura
+      - puede ser
+      - a veces
+      - depende
+      - regular
+      - así así
+      - ni mucho ni poco
+
+  - intent: iniciar_cuestionario
+    examples: |
+      - quiero orientación vocacional
+      - ayúdame a elegir carrera
+      - no sé qué estudiar
+      - quiero un test vocacional
+      - recomiéndame una carrera
+      - quiero saber qué carrera estudiar
+      - empecemos el cuestionario
+      - inicia el test
+      - quiero hacer el test
+      - dime qué carrera me conviene
+      - estoy indeciso con la carrera
+      - ayúdame a decidir mi carrera
+
+  - intent: pedir_ayuda
+    examples: |
+      - ayuda
+      - necesito ayuda
+      - cómo funciona esto
+      - qué puedes hacer
+      - explícame
+      - no entiendo
+      - cómo me ayudas
+      - qué haces
+      - cómo usar el bot
+
+  - intent: expresar_interes
+    examples: |
+      - me gustan las [matemáticas](area_interes:matematicas)
+      - amo las [matematicas](area_interes:matematicas)
+      - disfruto [ayudar a la gente](area_interes:ayudar)
+      - me encanta [ayudar a las personas](area_interes:ayudar)
+      - me apasiona el [arte](area_interes:arte)
+      - amo el [diseño](area_interes:arte) y lo visual
+      - me interesa la [tecnología](area_interes:tecnologia)
+      - me fascinan las [computadoras](area_interes:tecnologia)
+      - me apasionan las [ciencias](area_interes:ciencias)
+      - me encanta la [biología](area_interes:ciencias)
+      - quiero estudiar algo relacionado con [negocios](area_interes:negocios)
+      - me interesa [emprender](area_interes:negocios)
+      - soy una persona muy [creativa](area_interes:creatividad)
+      - me gusta hacer cosas [creativas](area_interes:creatividad)
+
+  - intent: bot_challenge
+    examples: |
+      - ¿eres un bot?
+      - ¿eres humano?
+      - ¿con quién hablo?
+      - ¿quién eres?
+      - ¿eres una persona real?
+      - ¿esto es un robot?
+      - ¿quién me responde?
+
+  # ----- Sinónimos: normalizan variantes de la entidad area_interes -----
+
+  - synonym: matematicas
+    examples: |
+      - matemáticas
+      - matemática
+      - números
+      - lógica
+      - cálculo
+
+  - synonym: ayudar
+    examples: |
+      - ayudar a la gente
+      - ayudar a las personas
+      - escuchar a otros
+      - apoyar a los demás
+
+  - synonym: arte
+    examples: |
+      - diseño
+      - dibujo
+      - artes visuales
+      - lo visual
+
+  - synonym: tecnologia
+    examples: |
+      - tecnología
+      - computadoras
+      - computación
+      - programación
+      - software
+
+  - synonym: ciencias
+    examples: |
+      - biología
+      - química
+      - ciencias naturales
+      - física
+
+  - synonym: negocios
+    examples: |
+      - emprender
+      - emprendimiento
+      - administración
+      - empresas
+
+  - synonym: creatividad
+    examples: |
+      - creativa
+      - creativo
+      - creativas
+      - creativos
+      - imaginación

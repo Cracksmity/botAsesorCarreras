@@ -1,0 +1,52 @@
+version: "3.1"
+
+# ============================================================================
+# Reglas: comportamientos deterministas que se cumplen siempre.
+# Las reglas son ideales para small talk y para activar/cerrar formularios.
+# La conversación principal del cuestionario vive dentro del form, por lo que
+# basta con dos reglas (activación y envío).
+# ============================================================================
+
+rules:
+
+  - rule: Saludar al iniciar la conversación
+    steps:
+      - intent: saludar
+      - action: utter_saludar
+
+  - rule: Despedirse
+    steps:
+      - intent: despedida
+      - action: utter_despedida
+
+  - rule: Responder cuando el usuario pide ayuda
+    steps:
+      - intent: pedir_ayuda
+      - action: utter_pedir_ayuda
+
+  - rule: Responder al bot challenge
+    steps:
+      - intent: bot_challenge
+      - action: utter_bot_challenge
+
+  - rule: Activar el cuestionario vocacional
+    steps:
+      - intent: iniciar_cuestionario
+      - action: cuestionario_form
+      - active_loop: cuestionario_form
+
+  - rule: Enviar el cuestionario y recomendar carrera
+    condition:
+      - active_loop: cuestionario_form
+    steps:
+      - action: cuestionario_form
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career
+
+  - rule: Fallback NLU
+    steps:
+      - intent: nlu_fallback
+      - action: utter_default

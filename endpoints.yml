@@ -1,0 +1,16 @@
+# Endpoint del action server.
+# Debe coincidir con el puerto donde corre `rasa run actions` (5055 por defecto).
+action_endpoint:
+  url: "http://localhost:5055/webhook"
+
+# Tracker store en memoria (suficiente para desarrollo).
+# Para producción cambiar a SQL/Redis/Mongo.
+# tracker_store:
+#   type: SQL
+#   dialect: "sqlite"
+#   db: "rasa.db"
+
+# Modelo cargado desde el directorio local `models/`.
+# models:
+#   url: http://my-server.com/models/default_core@latest
+#   wait_time_between_pulls: 10

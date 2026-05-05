@@ -1,0 +1,7 @@
+# Dependencias mínimas para correr el bot.
+# Rasa 3.6 es la última línea estable de Rasa 3.x.
+# IMPORTANTE: Rasa 3.6 soporta oficialmente Python 3.8 - 3.10.
+# Si usas Python 3.11+ es probable que la instalación falle.
+
+rasa==3.6.20
+rasa-sdk==3.6.2

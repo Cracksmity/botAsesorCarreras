@@ -1,0 +1,126 @@
+version: "3.1"
+
+# ============================================================================
+# Historias: ejemplos de conversaciones para entrenar políticas (TED).
+# Las historias muestran caminos alternativos (afirmar, denegar, mezcla)
+# alrededor del form para que el modelo generalice mejor.
+# ============================================================================
+
+stories:
+
+  - story: Camino feliz - usuario dice sí a casi todo
+    steps:
+      - intent: saludar
+      - action: utter_saludar
+      - intent: iniciar_cuestionario
+      - action: cuestionario_form
+      - active_loop: cuestionario_form
+      - slot_was_set:
+          - q_matematicas: si
+      - slot_was_set:
+          - q_ayudar: si
+      - slot_was_set:
+          - q_arte: tal_vez
+      - slot_was_set:
+          - q_tecnologia: si
+      - slot_was_set:
+          - q_ciencias: si
+      - slot_was_set:
+          - q_negocios: tal_vez
+      - slot_was_set:
+          - q_creatividad: si
+      - slot_was_set:
+          - requested_slot: null
+      - active_loop: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career
+      - intent: despedida
+      - action: utter_despedida
+
+  - story: Usuario que niega la mayoría de áreas
+    steps:
+      - intent: iniciar_cuestionario
+      - action: cuestionario_form
+      - active_loop: cuestionario_form
+      - slot_was_set:
+          - q_matematicas: no
+      - slot_was_set:
+          - q_ayudar: no
+      - slot_was_set:
+          - q_arte: tal_vez
+      - slot_was_set:
+          - q_tecnologia: no
+      - slot_was_set:
+          - q_ciencias: no
+      - slot_was_set:
+          - q_negocios: no
+      - slot_was_set:
+          - q_creatividad: tal_vez
+      - slot_was_set:
+          - requested_slot: null
+      - active_loop: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career
+
+  - story: Usuario expresa interés libremente y luego completa el cuestionario
+    steps:
+      - intent: saludar
+      - action: utter_saludar
+      - intent: expresar_interes
+        entities:
+          - area_interes: tecnologia
+      - intent: iniciar_cuestionario
+      - action: cuestionario_form
+      - active_loop: cuestionario_form
+      - slot_was_set:
+          - q_matematicas: si
+      - slot_was_set:
+          - q_ayudar: tal_vez
+      - slot_was_set:
+          - q_arte: no
+      - slot_was_set:
+          - q_tecnologia: si
+      - slot_was_set:
+          - q_ciencias: tal_vez
+      - slot_was_set:
+          - q_negocios: no
+      - slot_was_set:
+          - q_creatividad: tal_vez
+      - slot_was_set:
+          - requested_slot: null
+      - active_loop: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career
+      - intent: despedida
+      - action: utter_despedida
+
+  - story: Usuario interesado en humanidades / ayuda
+    steps:
+      - intent: saludar
+      - action: utter_saludar
+      - intent: pedir_ayuda
+      - action: utter_pedir_ayuda
+      - intent: iniciar_cuestionario
+      - action: cuestionario_form
+      - active_loop: cuestionario_form
+      - slot_was_set:
+          - q_matematicas: no
+      - slot_was_set:
+          - q_ayudar: si
+      - slot_was_set:
+          - q_arte: tal_vez
+      - slot_was_set:
+          - q_tecnologia: no
+      - slot_was_set:
+          - q_ciencias: si
+      - slot_was_set:
+          - q_negocios: tal_vez
+      - slot_was_set:
+          - q_creatividad: si
+      - slot_was_set:
+          - requested_slot: null
+      - active_loop: null
+      - action: utter_recomendacion_intro
+      - action: action_recommend_career
+      - intent: despedida
+      - action: utter_despedida

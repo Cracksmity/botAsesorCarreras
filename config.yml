@@ -1,0 +1,47 @@
+# Configuración del asistente vocacional (Rasa 3.x)
+# Idioma del modelo NLU
+recipe: default.v1
+assistant_id: orientador_vocacional
+
+language: es
+
+# Pipeline NLU optimizado para español:
+# - WhitespaceTokenizer + Featurizers léxicos/regex/char_wb funcionan bien
+#   para corpus pequeños sin necesidad de embeddings pesados.
+# - DIETClassifier maneja intents y entidades en un solo paso.
+# - FallbackClassifier dispara nlu_fallback cuando el modelo no está seguro.
+pipeline:
+  - name: WhitespaceTokenizer
+  - name: RegexFeaturizer
+  - name: LexicalSyntacticFeaturizer
+  - name: CountVectorsFeaturizer
+  - name: CountVectorsFeaturizer
+    analyzer: char_wb
+    min_ngram: 1
+    max_ngram: 4
+  - name: DIETClassifier
+    epochs: 100
+    constrain_similarities: true
+  - name: EntitySynonymMapper
+  - name: ResponseSelector
+    epochs: 100
+    constrain_similarities: true
+  - name: FallbackClassifier
+    threshold: 0.5
+    ambiguity_threshold: 0.1
+
+# Políticas de diálogo:
+# - RulePolicy maneja el cuestionario (form) y las reglas de small talk.
+# - MemoizationPolicy memoriza ejemplos exactos de stories.yml.
+# - TEDPolicy generaliza a conversaciones no vistas.
+policies:
+  - name: MemoizationPolicy
+    max_history: 5
+  - name: RulePolicy
+    core_fallback_threshold: 0.4
+    core_fallback_action_name: action_default_fallback
+    enable_fallback_prediction: true
+  - name: TEDPolicy
+    max_history: 5
+    epochs: 100
+    constrain_similarities: true
