@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 116" role="img" aria-label="Bot asesor de carreras">
+  <path fill="#12A5A5" d="M24 4h72q20 0 20 20v50q0 20-20 20H48l-26 20 4-20h-2Q4 94 4 74V24Q4 4 24 4Z"/>
+  <path d="M60 24 36 50M60 24l24 26 -13 22M84 50l13 22" fill="none" stroke="#F4F1E6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#F4F1E6"><circle cx="60" cy="24" r="8"/><circle cx="36" cy="50" r="7"/><circle cx="84" cy="50" r="8"/><circle cx="71" cy="72" r="7"/></g>
+  <circle cx="97" cy="72" r="8" fill="#F0A12E"/>
+</svg>

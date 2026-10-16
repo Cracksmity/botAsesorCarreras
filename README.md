@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/logo.svg" alt="Bot asesor de carreras" width="120">
+</p>
+
 # Bot de Orientación Vocacional con Rasa 3.x
 
 Asistente conversacional en español con **dos etapas**: perfil general
